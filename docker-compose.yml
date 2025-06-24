@@ -1,0 +1,37 @@
+version: '3.8'
+services:
+  # PostgreSQL Database
+  db:
+    image: postgres:15
+    container_name: grantha-db
+    environment:
+      POSTGRES_DB: dtl
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: Postgresql@123
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Spring Boot Backend
+  backend:
+    build: ./Grantha
+    container_name: grantha-backend
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/dtl
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: Postgresql@123
+      SPRING_JPA_DATABASE_PLATFORM: org.hibernate.dialect.PostgreSQLDialect
+    ports:
+      - "8085:8085"
+
+volumes:
+  pgdata:
